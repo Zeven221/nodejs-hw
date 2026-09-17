@@ -20,13 +20,10 @@ export const getAllNotes = async (req, res) => {
     noteQuery.clone().countDocuments(),
     noteQuery.skip(skip).limit(perPage),
   ]);
-  const totalPage = Math.ceil(totalNotes / perPage);
-  if (!notes) {
-    throw createHttpError(404, 'Notes not found.');
-  }
+  const totalPages = Math.ceil(totalNotes / perPage);
   res.status(200).json({
     notes,
-    totalPage,
+    totalPages,
     perPage,
     page,
     totalNotes,
