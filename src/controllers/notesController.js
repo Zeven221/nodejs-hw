@@ -42,7 +42,7 @@ export const getNoteById = async (req, res) => {
   res.status(200).json(note);
 };
 export const createNote = async (req, res) => {
-  const note = await Note.create(req);
+  const note = await Note.create({...req.body, userId: req.user._id});
   if (!note) {
     throw createHttpError(500, 'Something went wrong, try again!');
   }
