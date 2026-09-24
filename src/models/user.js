@@ -3,7 +3,6 @@ const userSchema = new Schema(
   {
     username: {
       type: String,
-      required: true,
       trim: true,
     },
     email: {
@@ -23,7 +22,7 @@ userSchema.pre('save', function () {
     this.username = this.email;
   }
 });
-userSchema.method.toJSON = function(){
+userSchema.methods.toJSON = function(){
   const obj = this.toObject();
   delete obj.password;
   return obj;

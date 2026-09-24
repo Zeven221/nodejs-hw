@@ -1,11 +1,11 @@
 import createHttpError from "http-errors";
-import { User } from "../models/user";
+import { User } from "../models/user.js";
 import bcrypt from 'bcrypt';
-import { createSession, setSessionCookies } from "../services/auth";
-import { Session } from "../models/session";
+import { createSession, setSessionCookies } from "../services/auth.js";
+import { Session } from "../models/session.js";
 export const registerUser = async (req, res) => {
   const {email, password} = req.body;
-  const isEmailAlreadyExist = User.findOne({
+  const isEmailAlreadyExist = await User.findOne({
     email
   });
   if(isEmailAlreadyExist){
@@ -17,18 +17,18 @@ export const registerUser = async (req, res) => {
     password: hashedPassword
   });
   const newSession = await createSession(newUser['_id']);
-  setSessionCookies(res, newSession);
+  await setSessionCookies(res, newSession);
   res.status(201, newUser);
 };
 export const userLogin = async (req, res) => {
   const {email,password} = req.body;
-  const user = User.findOne({
+  const user = await User.findOne({
     email
   });
   if(!user || !password){
     throw createHttpError(401, 'Invalid credentials');
   }
-  const isPasswordValid = bcrypt.compare(password, user.password);
+  const isPasswordValid = await bcrypt.compare(password, user.password);
   if(!isPasswordValid){
     throw createHttpError(401, 'Invalid credentials');
   }
@@ -55,11 +55,11 @@ export const refreshUserSession = async (req, res) => {
     res.clearCookie('refreshToken');
     res.clearCookie('accessToken');
     res.clearCookie('sessionId');
-    createHttpError(401, 'Session Token Expired.');
+   throw createHttpError(401, 'Session Token Expired.');
   }
   await session.deleteOne();
-  const newSession = createSession(session.userId);
-  setSessionCookies(res, newSession);
+  const newSession = await createSession(session.userId);
+  await setSessionCookies(res, newSession);
   res.status(200).json({
     message: 'Session refreshed.'
   });
@@ -67,7 +67,7 @@ export const refreshUserSession = async (req, res) => {
 export const logoutUser = async (req,res )=> {
   const {sessionId} = req.cookies;
   if(sessionId){
-    Session.deleteOne({
+    await Session.deleteOne({
       _id: sessionId
     });
   }

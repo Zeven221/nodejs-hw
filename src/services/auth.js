@@ -1,5 +1,5 @@
 import { FIFTEEN_MINUTES, ONE_DAY } from '../constants/time';
-import { Session } from '../models/session';
+import { Session } from '../models/session.js';
 import crypto from 'crypto';
 export const setSessionCookies = (res, session) => {
   res.cookie('accessToken', {
@@ -22,13 +22,13 @@ export const setSessionCookies = (res, session) => {
   });
 };
 export const createSession = async (userId) => {
-  const accessToken = crypto.generateUUID();
-  const refreshToken = crypto.generateUUID();
+  const accessToken = crypto.randomUUID();
+  const refreshToken = crypto.randomUUID();
   return Session.create({
     userId,
     accessToken,
     refreshToken,
-    accessTokenValidUntil: Date() + FIFTEEN_MINUTES,
-    refreshTokenValidUntil: Date() + ONE_DAY,
+    accessTokenValidUntil: new Date() + FIFTEEN_MINUTES,
+    refreshTokenValidUntil: new Date() + ONE_DAY,
   });
 };

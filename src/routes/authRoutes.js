@@ -3,7 +3,7 @@ import { Router } from 'express';
 import {
   loginUserSchema,
   registerUserSchema,
-} from '../validations/authValidation';
+} from '../validations/authValidation.js';
 import {
   registerUser,
   loginUser,
