@@ -4,7 +4,7 @@ import { Note } from '../models/note.js';
 export const getAllNotes = async (req, res) => {
   const { tag, search, perPage = 10, page = 1 } = req.query;
   const skip = (page - 1) * perPage;
-  const noteQuery = Note.find({userId: req.user['_id']});
+  const noteQuery = Note.find({ userId: req.user['_id'] });
   if (tag) {
     noteQuery.where('tag').equals(tag);
   }
@@ -12,11 +12,11 @@ export const getAllNotes = async (req, res) => {
     noteQuery.where({
       $or: [
         { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i'} },
+        { content: { $regex: search, $options: 'i' } },
       ],
     });
   }
-  const [ totalNotes, notes ] = await Promise.all([
+  const [totalNotes, notes] = await Promise.all([
     noteQuery.clone().countDocuments(),
     noteQuery.skip(skip).limit(perPage),
   ]);
@@ -31,10 +31,10 @@ export const getAllNotes = async (req, res) => {
 };
 export const getNoteById = async (req, res) => {
   const { noteId } = req.params;
-  await Note.find({userId: req.user['_id']});
+  await Note.find({ userId: req.user['_id'] });
   const note = await Note.findOne({
     _id: noteId,
-    userId: req.user['_id']
+    userId: req.user['_id'],
   });
 
   if (!note) {
@@ -43,9 +43,7 @@ export const getNoteById = async (req, res) => {
   res.status(200).json(note);
 };
 export const createNote = async (req, res) => {
-
-  const note = await Note.create(
-    req.body );
+  const note = await Note.where({ userId: req.user['_id'] }).create(req.body);
   if (!note) {
     throw createHttpError(500, 'Something went wrong, try again!');
   }
@@ -55,7 +53,7 @@ export const deleteNote = async (req, res) => {
   const { noteId } = req.params;
   const note = await Note.findOneAndDelete({
     _id: noteId,
-    userId: req.user['_id']
+    userId: req.user['_id'],
   });
   if (!note) {
     throw createHttpError(404, 'Note not found.');
@@ -67,7 +65,7 @@ export const updateNote = async (req, res) => {
   const note = await Note.findOneAndUpdate(
     {
       _id: noteId,
-      userId: req.user['_id']
+      userId: req.user['_id'],
     },
     req.body,
     {
