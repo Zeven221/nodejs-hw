@@ -31,7 +31,7 @@ export const getAllNotes = async (req, res) => {
 };
 export const getNoteById = async (req, res) => {
   const { noteId } = req.params;
-  await Note.find({ userId: req.user['_id'] });
+  await Note.find();
   const note = await Note.findOne({
     _id: noteId,
     userId: req.user['_id'],
@@ -43,7 +43,11 @@ export const getNoteById = async (req, res) => {
   res.status(200).json(note);
 };
 export const createNote = async (req, res) => {
-  const note = await Note.where({ userId: req.user['_id'] }).create(req.body);
+  const { body } = req;
+  const note = await Note.create({
+    userId: req.user['_id'],
+    body,
+  });
   if (!note) {
     throw createHttpError(500, 'Something went wrong, try again!');
   }
