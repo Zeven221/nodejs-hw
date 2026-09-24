@@ -39,39 +39,43 @@ export const loginUser = async (req, res) => {
   setSessionCookies(res, newSession);
   res.status(200).json(user);
 };
+
 export const refreshUserSession = async (req, res) => {
   const { sessionId, refreshToken } = req.cookies;
+
   if (!sessionId || !refreshToken) {
-    res.clearCookie('refreshToken');
-    res.clearCookie('accessToken');
-    res.clearCookie('sessionId');
     throw createHttpError(401, 'Missing session credentials');
   }
+
   const session = await Session.findOne({
     _id: sessionId,
     refreshToken,
   });
+
   if (!session) {
-    res.clearCookie('refreshToken');
-    res.clearCookie('accessToken');
-    res.clearCookie('sessionId');
-    throw createHttpError(401, 'Session not found.');
+    throw createHttpError(401, 'Session not found');
   }
+
   const isSessionTokenExpired = session.refreshTokenValidUntil < new Date();
+
   if (isSessionTokenExpired) {
-    res.clearCookie('refreshToken');
-    res.clearCookie('accessToken');
+    await session.deleteOne();
     res.clearCookie('sessionId');
-    throw createHttpError(401, 'Session Token Expired.');
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    throw createHttpError(401, 'Session token expired');
   }
-  res.clearCookie('sessionId');
+
   await session.deleteOne();
+
   const newSession = await createSession(session.userId);
-  await setSessionCookies(res, newSession);
+  setSessionCookies(res, newSession);
+
   res.status(200).json({
-    message: 'Session refreshed.',
+    message: 'Session refreshed',
   });
 };
+
 export const logoutUser = async (req, res) => {
   const { sessionId } = req.cookies;
   if (sessionId) {
