@@ -19,8 +19,8 @@ app.use(logger);
 app.use(notesRoutes);
 app.use(authRouter);
 app.use(userRouter);
-app.use(errors());
 app.use(notFoundHandler);
+app.use(errors());
 app.use(errorHandler);
  await connectMongoDB();
 app.listen(PORT, () => {

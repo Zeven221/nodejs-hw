@@ -4,7 +4,7 @@ import { Session } from '../models/session.js';
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { sendMail } from '../utils/sendMail.js';
+import { sendEmail } from '../utils/sendMail.js';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import handlebars from 'handlebars';
@@ -93,9 +93,9 @@ export const logoutUser = async (req, res) => {
   res.clearCookie('refreshToken');
   res.status(204).send();
 };
-export const requestResetPassword = async (req, res) => {
+export const requestResetEmail = async (req, res) => {
   const { email } = req.body;
-  const user = User.findOne({
+  const user = await User.findOne({
     email,
   });
   if (!user) {
@@ -111,15 +111,17 @@ export const requestResetPassword = async (req, res) => {
     process.env.JWT_SECRET,
     { expiresIn: '15m' },
   );
-  const templatePath = path.resolve('../templates/reset-password-email.html');
-  const templateSource = fs.readFile(templatePath);
+  const templatePath = await path.resolve(
+    'src/templates/reset-password-email.html',
+  );
+  const templateSource = await fs.readFile(templatePath);
   const template = handlebars.compile(templateSource);
   const html = template({
     name: user.username,
     link: `${process.env.FRONTEND_DOMAIN}/reset-password?token=${resetToken}`,
   });
   try {
-    await sendMail({
+    await sendEmail({
       from: process.env.SMTP_FROM,
       to: email,
       subject: 'Reset your Password.',
@@ -143,7 +145,7 @@ export const resetPassword = async (req, res) => {
   } catch {
     throw createHttpError(401, 'Invalid or expired token');
   }
-  const user = User.findOne({
+  const user = await User.findOne({
     _id: payload.sub,
     email: payload.email,
   });
@@ -151,10 +153,14 @@ export const resetPassword = async (req, res) => {
     throw createHttpError(404, 'User not found');
   }
   const hashedPassword = await bcrypt.hash(password, 10);
-  await User.updateOne({
-    _id: user._id,
-    password: hashedPassword,
-  });
+  await User.updateOne(
+    {
+      _id: user._id,
+    },
+    {
+      password: hashedPassword,
+    },
+  );
   await Session.deleteMany({
     userId: user._id,
   });
