@@ -114,7 +114,7 @@ export const requestResetEmail = async (req, res) => {
   const templatePath = await path.resolve(
     'src/templates/reset-password-email.html',
   );
-  const templateSource = await fs.readFile(templatePath);
+  const templateSource = (await fs.readFile(templatePath)).toString();
   const template = handlebars.compile(templateSource);
   const html = template({
     name: user.username,
