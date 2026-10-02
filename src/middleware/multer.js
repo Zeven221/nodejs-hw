@@ -12,7 +12,7 @@ export const upload = multer({
       'image/gif',
       'image/webp',
     ];
-    if (allowedTypes.includes(file.mimetype)) {
+    if (allowedTypes.includes(file.mimetype) || file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
       cb(
